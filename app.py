@@ -2,19 +2,42 @@ import sqlite3
 from sqlite3 import Error
 import csv
 from tkinter import *
+#import showcase
+from PIL import Image
 
-def createListBox(fileList):
+def createListBox(fileList, conn):
     master = Tk()
+    master.title("Select an address from the following list")
 
-    listbox = Listbox(master)
-    listbox.pack()
+    def showPicture():
+        value = str((listbox.get(ACTIVE)))
+        # build relative path to the image file
+        relativeDir = "Images" + "\\" + "nynyma_rec0040_1_00993_0001" + ".jpg"
+        # load the image
+        image = Image.open(relativeDir)
+        # show image file
+        image.show()
 
-    #listbox.insert(END, "a list entry")
+    sizex = 600
+    sizey = 400
+    posx = 40
+    posy = 20
+    master.wm_geometry("%dx%d+%d+%d" % (sizex, sizey, posx, posy))
+    lbl = Label(master,text = "Select an address to view")
+
+    listbox = Listbox(master, width=60,height=10)
 
     for item in fileList:#["one", "two", "three", "four"]:
         listbox.insert(END, item)
+    listbox.pack()
+    lbl.pack()
+
+    btn = Button(master, text="View", command=showPicture)
+    btn.pack()
 
     mainloop()
+
+
 
 # Apparently this code will work in the project directory to create a database if there isn't already one of the specified name.
 def create_connection(db_file):
@@ -112,10 +135,21 @@ def create_schema(conn):
     conn.close()
     return 0
 
+def getAddresses(conn):
+    # create a cursor object
+    cur = conn.cursor()
+    cur.execute("SELECT COMPLETEADDRESS FROM buildings")
+
+    addresses = cur.fetchall()
+    return addresses
+
+
 if __name__ == '__main__':
-    conn = create_connection("taxphotos.db")
-    fileList = ['one', 'two', 'three', 'four']
-    createListBox(fileList)
+    conn = create_connection("pythonsqlite.db")
+    print(conn)
+    #fileList = ['one', 'two', 'three', 'four']
+    fileList = getAddresses(conn)
+    createListBox(fileList, conn)
     #if conn:
     #    create_schema(conn)
 
