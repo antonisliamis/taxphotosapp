@@ -5,14 +5,19 @@ from tkinter import *
 #import showcase
 from PIL import Image
 
-def createListBox(fileList, conn):
+def createListBox(addressList, conn):
     master = Tk()
     master.title("Select an address from the following list")
+    curs = conn.cursor()
 
     def showPicture():
         value = str((listbox.get(ACTIVE)))
+
+        curs.execute("SELECT FILENAME FROM buildings WHERE COMPLETEADDRESS=?", (value,))
+        filenames = curs.fetchall()
+
         # build relative path to the image file
-        relativeDir = "Images" + "\\" + "nynyma_rec0040_1_00993_0001" + ".jpg"
+        relativeDir = "Images" + "\\" + filenames[0][0] + ".jpg"
         # load the image
         image = Image.open(relativeDir)
         # show image file
@@ -27,7 +32,7 @@ def createListBox(fileList, conn):
 
     listbox = Listbox(master, width=60,height=10)
 
-    for item in fileList:#["one", "two", "three", "four"]:
+    for item in addressList:#["one", "two", "three", "four"]:
         listbox.insert(END, item)
     listbox.pack()
     lbl.pack()
@@ -131,31 +136,42 @@ def create_schema(conn):
             #Don't forget we have to commit any changes we make to records.
             conn.commit()
 
-    #Don't forget to close the DB connection before we leave
+    #Don't forget to close the DB connection before we leave -- if no other functions are called in "main"
     conn.close()
     return 0
 
 def getAddresses(conn):
     # create a cursor object
     cur = conn.cursor()
-    cur.execute("SELECT COMPLETEADDRESS FROM buildings")
 
-    addresses = cur.fetchall()
+    # run a query to get all the records in the buildings table
+    cur.execute("SELECT * FROM buildings")
+
+    # declare variable to hold the addresses
+    addresses = []
+
+    # create a data object to store all query results
+    data = cur.fetchall()
+
+    # populate the address list by reading in the COMPLETE ADDRESS field
+    for addy in data:
+        addresses.append(addy[8])
+
     return addresses
 
 
 if __name__ == '__main__':
-    conn = create_connection("pythonsqlite.db")
-    print(conn)
-    #fileList = ['one', 'two', 'three', 'four']
-    fileList = getAddresses(conn)
-    createListBox(fileList, conn)
-    #if conn:
-    #    create_schema(conn)
+    conn = create_connection("taxphotos.db")
 
+    # uncomment these lines to rebuild the database.
+#    if conn:
+#        create_schema(conn)
 
-# from {input selection} open
-#
-# filename = "nynyma_rec0040_1_00993_0001"
-#
-# open("./Images/" + filename + ".jpg")
+    # the first line populates a list with all of the complete addresses from the db
+    # the second line runs the GUI
+    # these could be condensed to "createListBox(getAddresses(conn), conn)"
+    addressList = getAddresses(conn)
+    createListBox(addressList, conn)
+
+    # always ensure that the connection to the db gets closed.
+    conn.close()
