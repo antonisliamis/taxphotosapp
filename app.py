@@ -23,6 +23,7 @@ def createListBox(addressList, conn):
         # show image file
         image.show()
 
+    # set up the window parameters
     sizex = 600
     sizey = 400
     posx = 40
@@ -30,16 +31,20 @@ def createListBox(addressList, conn):
     master.wm_geometry("%dx%d+%d+%d" % (sizex, sizey, posx, posy))
     lbl = Label(master,text = "Select an address to view")
 
+    # add a listbox inside the window
     listbox = Listbox(master, width=60,height=10)
 
+    # populate the listbox with all the addresses that we passed into the function
     for item in addressList:#["one", "two", "three", "four"]:
         listbox.insert(END, item)
     listbox.pack()
     lbl.pack()
 
+    # add a button that calls our callback function showPicture which is defined above
     btn = Button(master, text="View", command=showPicture)
     btn.pack()
 
+    # calling mainloop() makes sure our window stays up until we close it
     mainloop()
 
 
